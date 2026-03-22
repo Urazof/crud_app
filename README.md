@@ -2,7 +2,7 @@
 
 This repository contains a Product Catalog API implemented with Fastify and TypeScript.
 
-Current status: **Phase 1 (project bootstrap) is implemented**.
+Current status: **Phase 2 (single-process CRUD) is implemented**.
 
 ## Node.js version
 
@@ -18,12 +18,17 @@ npm install
 ## Environment variables
 
 1. Create a local `.env` file in the project root.
-2. Copy values from `.env.example`.
+2. Copy required values from `.env.example`.
 
-Example:
+Required:
 
 ```env
 PORT=4000
+```
+
+Optional:
+
+```env
 HOST=127.0.0.1
 ```
 
@@ -39,44 +44,38 @@ npm run build
 npm run start:prod
 ```
 
-- `start:dev` — runs the app in development mode with watch.
-- `build` — compiles TypeScript to `dist/`.
-- `start:prod` — builds and starts the compiled app.
+- `start:dev` - runs the app in development mode with watch.
+- `build` - compiles TypeScript to `dist/`.
+- `start:prod` - builds and starts the compiled app.
 
-## Current API (Phase 1)
+## API endpoints
 
 ### Health check
 
-- `GET /api/health`
-- Response: `200 OK`
+- `GET /api/health` -> `200 OK`
 
-Example request:
+### Products CRUD
+
+- `GET /api/products` -> `200 OK`
+- `GET /api/products/:productId` -> `200 | 400 | 404`
+- `POST /api/products` -> `201 | 400`
+- `PUT /api/products/:productId` -> `200 | 400 | 404`
+- `DELETE /api/products/:productId` -> `204 | 400 | 404`
+
+Validation and behavior:
+- `productId` must be UUID (`400` on invalid ID)
+- request body must contain required fields (`400`)
+- `price` must be greater than 0 (`400`)
+- `404` when product does not exist
+- unknown routes return `404`
+- unhandled server errors return `500`
+
+## Example quick check
 
 ```bash
 curl http://127.0.0.1:4000/api/health
+curl http://127.0.0.1:4000/api/products
 ```
-
-Expected response:
-
-```json
-{
-  "status": "ok",
-  "service": "crud_app"
-}
-```
-
-### Global error handlers already enabled
-
-- Unknown routes -> `404 Not Found`
-- Unhandled server errors -> `500 Internal Server Error`
-
-## Planned API endpoints (next phase)
-
-- `GET /api/products`
-- `GET /api/products/:productId`
-- `POST /api/products`
-- `PUT /api/products/:productId`
-- `DELETE /api/products/:productId`
 
 ## Project stack
 
@@ -89,11 +88,11 @@ Expected response:
 
 Implemented now:
 - TypeScript project bootstrap
-- `.env`-based configuration
+- `.env`-based configuration (`PORT` is required)
 - `start:dev` and `start:prod` scripts
-- Base Fastify app and health route
+- Full single-process Product CRUD API
+- Global `404` and `500` handlers
 
 Not implemented yet:
-- Full Product CRUD routes
 - API tests
 - `start:multi` horizontal scaling mode
