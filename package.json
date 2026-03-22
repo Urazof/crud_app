@@ -1,0 +1,24 @@
+{
+  "name": "crud_app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fastify + TypeScript CRUD API for product catalog",
+  "engines": {
+    "node": ">=24.10.0"
+  },
+  "scripts": {
+    "start:dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start:prod": "npm run build && node dist/main.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "fastify": "^5.6.1",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
