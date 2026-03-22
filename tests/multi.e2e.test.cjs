@@ -166,3 +166,90 @@ test("multi mode load balancer rotates workers in round-robin", async () => {
     await delay(500);
   }
 });
+
+test("multi mode processes parallel requests on at least two different workers", async () => {
+  const basePort = BASE_PORT + 20;
+  const masterPath = path.join(process.cwd(), "dist", "cluster", "master.js");
+  const child = spawn(process.execPath, [masterPath], {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      PORT: String(basePort),
+      HOST: "127.0.0.1",
+      WORKERS: "3",
+    },
+    stdio: ["ignore", "ignore", "ignore"],
+  });
+
+  try {
+    await waitForWorkers(basePort, [basePort + 1, basePort + 2, basePort + 3]);
+
+    // 1) Parallel creates for two different IDs.
+    const [createA, createB] = await Promise.all([
+      fetchJson(`http://127.0.0.1:${basePort}/api/products`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: "Parallel A",
+          description: "A",
+          price: 11,
+          category: "books",
+          inStock: true,
+        }),
+      }),
+      fetchJson(`http://127.0.0.1:${basePort}/api/products`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: "Parallel B",
+          description: "B",
+          price: 12,
+          category: "books",
+          inStock: true,
+        }),
+      }),
+    ]);
+
+    assert.equal(createA.status, 201);
+    assert.equal(createB.status, 201);
+
+    const idA = createA.json?.id;
+    const idB = createB.json?.id;
+
+    assert.ok(idA);
+    assert.ok(idB);
+    assert.notEqual(idA, idB);
+
+    // 2) Parallel reads to confirm consistency for both IDs.
+    const reads = await Promise.all([
+      fetchJson(`http://127.0.0.1:${basePort}/api/products/${idA}`, { method: "GET" }),
+      fetchJson(`http://127.0.0.1:${basePort}/api/products/${idB}`, { method: "GET" }),
+      fetchJson(`http://127.0.0.1:${basePort}/api/products/${idA}`, { method: "GET" }),
+      fetchJson(`http://127.0.0.1:${basePort}/api/products/${idB}`, { method: "GET" }),
+    ]);
+
+    for (const response of reads) {
+      assert.equal(response.status, 200);
+      assert.ok(response.json?.id === idA || response.json?.id === idB);
+    }
+
+    // 3) Parallel health checks: at least two different worker pids must respond.
+    const healthResponses = await Promise.all(
+      Array.from({ length: 12 }, () =>
+        fetchJson(`http://127.0.0.1:${basePort}/api/health`, { method: "GET" }),
+      ),
+    );
+
+    const workerPids = new Set(
+      healthResponses
+        .map((response) => response.json?.pid)
+        .filter((pid) => typeof pid === "number"),
+    );
+
+    assert.ok(
+      workerPids.size >= 2,
+      `Expected at least 2 different worker pids, got ${workerPids.size}`,
+    );
+  } finally {
+    child.kill("SIGTERM");
+    await delay(500);
+  }
+});
