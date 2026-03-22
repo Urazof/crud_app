@@ -2,7 +2,7 @@
 
 This repository contains a Product Catalog API implemented with Fastify and TypeScript.
 
-Current status: **Phase 2 (single-process CRUD) is implemented**.
+Current status: **Phase 5 (single-process CRUD + API tests) is implemented**.
 
 ## Node.js version
 
@@ -42,11 +42,13 @@ Notes:
 npm run start:dev
 npm run build
 npm run start:prod
+npm test
 ```
 
 - `start:dev` - runs the app in development mode with watch.
 - `build` - compiles TypeScript to `dist/`.
 - `start:prod` - builds and starts the compiled app.
+- `test` - builds the project and runs API tests.
 
 ## API endpoints
 
@@ -92,7 +94,7 @@ Implemented now:
 - `start:dev` and `start:prod` scripts
 - Full single-process Product CRUD API
 - Global `404` and `500` handlers
+- API tests (4 scenarios)
 
 Not implemented yet:
-- API tests
 - `start:multi` horizontal scaling mode
