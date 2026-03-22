@@ -1,7 +1,15 @@
 import { inMemoryStore } from "./in-memory.store";
 import type { Product } from "./products.types";
 
-export class ProductsRepository {
+export interface ProductsRepositoryPort {
+  getAll(): Promise<Product[]>;
+  getById(id: string): Promise<Product | null>;
+  create(product: Product): Promise<Product>;
+  update(id: string, product: Product): Promise<Product>;
+  delete(id: string): Promise<boolean>;
+}
+
+export class InMemoryProductsRepository implements ProductsRepositoryPort {
   async getAll(): Promise<Product[]> {
     return inMemoryStore.getAll();
   }
@@ -22,4 +30,3 @@ export class ProductsRepository {
     return inMemoryStore.delete(id);
   }
 }
-

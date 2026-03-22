@@ -2,7 +2,7 @@
 
 This repository contains a Product Catalog API implemented with Fastify and TypeScript.
 
-Current status: **Phase 5 (single-process CRUD + API tests) is implemented**.
+Current status: **Phase 7 complete (single + multi mode, tests, scoring audit)**.
 
 ## Node.js version
 
@@ -30,6 +30,7 @@ Optional:
 
 ```env
 HOST=127.0.0.1
+WORKERS=3
 ```
 
 Notes:
@@ -42,13 +43,15 @@ Notes:
 npm run start:dev
 npm run build
 npm run start:prod
+npm run start:multi
 npm test
 ```
 
-- `start:dev` - runs the app in development mode with watch.
+- `start:dev` - runs app in development mode with watch.
 - `build` - compiles TypeScript to `dist/`.
-- `start:prod` - builds and starts the compiled app.
-- `test` - builds the project and runs API tests.
+- `start:prod` - builds and starts compiled app.
+- `start:multi` - starts cluster master + workers + load balancer.
+- `test` - runs single-mode and multi-mode API tests.
 
 ## API endpoints
 
@@ -72,7 +75,16 @@ Validation and behavior:
 - unknown routes return `404`
 - unhandled server errors return `500`
 
-## Example quick check
+## Multi mode behavior
+
+When `npm run start:multi` is used:
+- load balancer listens on base `PORT`
+- workers listen on `PORT + 1`, `PORT + 2`, ...
+- requests are distributed round-robin
+- product state remains consistent between workers via IPC and master-owned store
+- `x-worker-port` response header helps observe worker rotation
+
+## Quick checks
 
 ```bash
 curl http://127.0.0.1:4000/api/health
@@ -86,15 +98,13 @@ curl http://127.0.0.1:4000/api/products
 - [Zod](https://zod.dev/)
 - [dotenv](https://github.com/motdotla/dotenv)
 
-## Assignment compliance (current phase)
+## Assignment compliance
 
-Implemented now:
-- TypeScript project bootstrap
-- `.env`-based configuration (`PORT` is required)
-- `start:dev` and `start:prod` scripts
-- Full single-process Product CRUD API
-- Global `404` and `500` handlers
-- API tests (4 scenarios)
-
-Not implemented yet:
-- `start:multi` horizontal scaling mode
+Implemented:
+- TypeScript solution
+- all CRUD routes
+- global `404` and `500` handling
+- `.env`-based configuration (`PORT` required)
+- `start:dev`, `start:prod`, `start:multi`
+- API tests (single + multi scenarios)
+- horizontal scaling with load balancer and consistent state across workers

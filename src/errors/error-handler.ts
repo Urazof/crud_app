@@ -33,6 +33,22 @@ export function registerErrorHandlers(app: FastifyInstance): void {
       });
     }
 
+    if (
+      typeof (error as { statusCode?: number }).statusCode === "number" &&
+      (error as { statusCode: number }).statusCode >= 400 &&
+      (error as { statusCode: number }).statusCode < 500
+    ) {
+      const typedError = error as { statusCode: number; message?: string };
+      const statusCode = typedError.statusCode;
+      const errorName = statusCode === 404 ? "Not Found" : "Bad Request";
+
+      return reply.status(statusCode).send({
+        statusCode,
+        error: errorName,
+        message: typedError.message ?? "Request error",
+      });
+    }
+
     app.log.error(error);
 
     return reply.status(500).send({
@@ -42,4 +58,3 @@ export function registerErrorHandlers(app: FastifyInstance): void {
     });
   });
 }
-

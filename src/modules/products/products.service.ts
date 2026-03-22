@@ -1,10 +1,10 @@
 import { randomUUID } from "crypto";
 import { notFound } from "../../errors/app-error";
-import { ProductsRepository } from "./products.repository";
+import type { ProductsRepositoryPort } from "./products.repository";
 import type { Product, ProductInput } from "./products.types";
 
 export class ProductsService {
-  constructor(private readonly repository: ProductsRepository) {}
+  constructor(private readonly repository: ProductsRepositoryPort) {}
 
   async getAll(): Promise<Product[]> {
     return this.repository.getAll();
@@ -52,4 +52,3 @@ export class ProductsService {
     }
   }
 }
-

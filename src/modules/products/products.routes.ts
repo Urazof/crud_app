@@ -1,13 +1,14 @@
 import type { FastifyInstance } from "fastify";
 import { badRequest } from "../../errors/app-error";
 import { productBodySchema, productIdParamSchema } from "./products.schemas";
-import { ProductsRepository } from "./products.repository";
+import { InMemoryProductsRepository } from "./products.repository";
 import { ProductsService } from "./products.service";
 import type { ProductInput } from "./products.types";
 
-const service = new ProductsService(new ProductsRepository());
-
-export function registerProductsRoutes(app: FastifyInstance): void {
+export function registerProductsRoutes(
+  app: FastifyInstance,
+  service: ProductsService = new ProductsService(new InMemoryProductsRepository()),
+): void {
   app.get("/api/products", async (_request, reply) => {
     const products = await service.getAll();
     return reply.status(200).send(products);
